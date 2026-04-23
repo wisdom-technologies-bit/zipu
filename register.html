@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Zipu Register</title>
+  
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --card: #111318;
+      --text: #e6e6e6;
+      --muted: #9aa0a6;
+      --border: #1f2430;
+      --primary: #4f8cff;
+      --danger: #ff4d4d;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    
+    body {
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+    }
+    
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+    
+    h2 {
+      margin-bottom: 16px;
+      font-size: 22px;
+    }
+    
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      outline: none;
+    }
+    
+    input:focus {
+      border-color: var(--primary);
+    }
+    
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+    
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    a {
+      display: block;
+      margin-top: 12px;
+      text-align: center;
+      color: var(--muted);
+      text-decoration: none;
+    }
+    
+    .error {
+      color: var(--danger);
+      font-size: 13px;
+      margin-bottom: 10px;
+      display: none;
+    }
+    
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  
+  <div class="container">
+    <div class="card">
+      
+      <h2>Create Account</h2>
+      
+      <div class="error" id="errorBox"></div>
+      
+      <input id="name" type="text" placeholder="Full name">
+      <input id="email" type="email" placeholder="Email">
+      <input id="password" type="password" placeholder="Password">
+      
+      <div class="hint">
+        Password should be at least 6 characters
+      </div>
+      
+      <button id="btn" onclick="register()">Register</button>
+      
+      <a href="login.html">Already have an account? Login</a>
+      
+    </div>
+  </div>
+  
+  <script>
+    const API = "https://api.wisdomdigitaltech.com";
+    
+    const btn = document.getElementById("btn");
+    const errorBox = document.getElementById("errorBox");
+    
+    function showError(msg) {
+      errorBox.style.display = "block";
+      errorBox.textContent = msg;
+    }
+    
+    async function register() {
+      
+      errorBox.style.display = "none";
+      
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      
+      // VALIDATION
+      if (!name || !email || !password) {
+        showError("All fields are required");
+        return;
+      }
+      
+      if (password.length < 6) {
+        showError("Password too short");
+        return;
+      }
+      
+      btn.disabled = true;
+      btn.textContent = "Creating account...";
+      
+      try {
+        
+        const res = await fetch(API + "/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password })
+        });
+        
+        const data = await res.json();
+        
+        if (data.error) {
+          showError("Email already exists or invalid data");
+          btn.disabled = false;
+          btn.textContent = "Register";
+          return;
+        }
+        
+        // SUCCESS → GO LOGIN
+        window.location.href = "login.html";
+        
+      } catch (err) {
+        showError("Network error. Try again.");
+      }
+      
+      btn.disabled = false;
+      btn.textContent = "Register";
+    }
+  </script>
+  
+</body>
+
+</html>

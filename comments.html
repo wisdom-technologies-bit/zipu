@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Comments - Zipu</title>
+  
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --card: #111318;
+      --text: #e6e6e6;
+      --muted: #9aa0a6;
+      --border: #1f2430;
+      --primary: #4f8cff;
+      --danger: #ff4d4d;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    
+    body {
+      background: var(--bg);
+      color: var(--text);
+    }
+    
+    /* HEADER */
+    .header {
+      padding: 14px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      font-weight: 700;
+    }
+    
+    /* CONTAINER */
+    .container {
+      max-width: 600px;
+      margin: auto;
+      padding: 14px;
+    }
+    
+    /* COMMENT CARD */
+    .comment {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    
+    /* NESTED COMMENT */
+    .reply {
+      margin-left: 20px;
+      border-left: 2px solid var(--border);
+      padding-left: 10px;
+    }
+    
+    /* TEXTAREA BOX */
+    .box {
+      position: sticky;
+      bottom: 0;
+      background: var(--bg);
+      padding: 10px;
+      border-top: 1px solid var(--border);
+    }
+    
+    textarea {
+      width: 100%;
+      min-height: 70px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      color: var(--text);
+      resize: none;
+      outline: none;
+    }
+    
+    textarea:focus {
+      border-color: var(--primary);
+    }
+    
+    button {
+      width: 100%;
+      margin-top: 6px;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    
+    .small {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  
+  <div class="header">Comments</div>
+  
+  <div class="container">
+    
+    <div id="comments"></div>
+    
+  </div>
+  
+  <div class="box">
+    <textarea id="text" placeholder="Write a comment..."></textarea>
+    <button onclick="send()">Reply</button>
+  </div>
+  
+  <script>
+    const API = "https://api.wisdomdigitaltech.com";
+    const postId = new URLSearchParams(location.search).get("id");
+    
+    const commentsBox = document.getElementById("comments");
+    const text = document.getElementById("text");
+    
+    let lastData = "";
+    
+    /* LOAD COMMENTS */
+    async function load() {
+      
+      try {
+        const res = await fetch(API + "/comments?post_id=" + postId);
+        const data = await res.json();
+        
+        const json = JSON.stringify(data);
+        if (json === lastData) return;
+        lastData = json;
+        
+        commentsBox.innerHTML = "";
+        
+        if (data.length === 0) {
+          commentsBox.innerHTML = "<div class='empty'>No comments yet</div>";
+          return;
+        }
+        
+        data.forEach(c => {
+          
+          const div = document.createElement("div");
+          
+          // SIMPLE THREAD CHECK
+          const isReply = c.parent_id ? "reply" : "comment";
+          
+          div.className = isReply;
+          
+          div.innerHTML = `
+        <div>${escapeHtml(c.content)}</div>
+        <div class="small">User ${c.user_id || ""}</div>
+      `;
+          
+          commentsBox.appendChild(div);
+        });
+        
+      } catch (e) {
+        commentsBox.innerHTML = "<div class='empty'>Failed to load comments</div>";
+      }
+    }
+    
+    /* SEND COMMENT */
+    async function send() {
+      
+      const content = text.value.trim();
+      
+      if (!content) return;
+      
+      if (content.length > 300) return;
+      
+      await fetch(API + "/comment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          post_id: postId,
+          user_id: localStorage.getItem("user_id"),
+          content,
+          parent_id: null
+        })
+      });
+      
+      text.value = "";
+      load();
+    }
+    
+    /* SECURITY: PREVENT HTML INJECTION */
+    function escapeHtml(str) {
+      return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+    
+    /* INIT */
+    load();
+    setInterval(load, 2000);
+  </script>
+  
+</body>
+
+</html>
