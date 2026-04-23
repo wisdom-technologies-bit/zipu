@@ -1,219 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Zipu</title>
-
-<style>
-:root {
-  --bg: #0b0c10;
-  --card: #111318;
-  --text: #e6e6e6;
-  --muted: #9aa0a6;
-  --border: #1f2430;
-  --primary: #4f8cff;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: system-ui, -apple-system, sans-serif;
-}
-
-body {
-  background: var(--bg);
-  color: var(--text);
-}
-
-/* APP CONTAINER */
-.app {
-  max-width: 520px;
-  margin: 0 auto;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-/* HEADER */
-header {
-  position: sticky;
-  top: 0;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  padding: 14px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.nav a {
-  color: var(--muted);
-  margin-left: 12px;
-  font-size: 14px;
-  text-decoration: none;
-}
-
-.nav a:hover {
-  color: var(--text);
-}
-
-/* FEED */
-.feed {
-  padding: 10px 10px 40px;
-}
-
-/* POST CARD */
-.post {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 12px;
-  margin-bottom: 10px;
-}
-
-.post .name {
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 6px;
-}
-
-.post .content {
-  font-size: 15px;
-  line-height: 1.4;
-  margin-bottom: 10px;
-  color: var(--text);
-}
-
-.post .actions {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.post a {
-  color: var(--primary);
-  text-decoration: none;
-}
-
-/* SKELETON LOADING */
-.skeleton {
-  height: 80px;
-  border-radius: 14px;
-  background: linear-gradient(90deg, #1a1d24, #232833, #1a1d24);
-  background-size: 200% 100%;
-  animation: load 1.2s infinite;
-  margin-bottom: 10px;
-}
-
-@keyframes load {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* RESPONSIVE */
-@media (max-width: 480px) {
-  header {
-    padding: 12px;
-  }
-}
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Improved Design</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            transition: background 0.3s;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin: 20px;
+            padding: 20px;
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        button {
+            background-color: #6200ea;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #3700b3;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .card {
+                margin: 10px;
+            }
+        }
+    </style>
 </head>
-
 <body>
-
-<div class="app">
-
-<header>
-  <div class="logo">Zipu</div>
-  <div class="nav">
-    <a href="login.html">Login</a>
-    <a href="register.html">Register</a>
-  </div>
-</header>
-
-<div id="feed" class="feed"></div>
-
-</div>
-
-<script>
-const API = "https://api.wisdomdigitaltech.com";
-
-let cache = "";
-
-/* SAFE TEXT RENDER (prevents HTML injection) */
-function escapeHtml(text) {
-  return text
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
-}
-
-/* SHOW SKELETON */
-function showLoading() {
-  const feed = document.getElementById("feed");
-  feed.innerHTML = `
-    <div class="skeleton"></div>
-    <div class="skeleton"></div>
-    <div class="skeleton"></div>
-  `;
-}
-
-/* LOAD POSTS */
-async function loadPosts() {
-  try {
-    const res = await fetch(API + "/posts");
-    const data = await res.json();
-
-    const newData = JSON.stringify(data);
-    if (newData === cache) return;
-    cache = newData;
-
-    const feed = document.getElementById("feed");
-
-    let html = "";
-
-    data.forEach(p => {
-      html += `
-        <div class="post">
-          <div class="name">${escapeHtml(p.name || "User")}</div>
-
-          <div class="content">
-            ${escapeHtml(p.content)}
-          </div>
-
-          <div class="actions">
-            <span>${p.created_at || ""}</span>
-            <a href="comments.html?id=${p.post_id}">Comments</a>
-          </div>
-        </div>
-      `;
-    });
-
-    feed.innerHTML = html;
-
-  } catch (e) {
-    console.log("Error loading posts", e);
-  }
-}
-
-/* INIT */
-showLoading();
-loadPosts();
-
-/* SMART REFRESH (optimized instead of full reload spam) */
-setInterval(loadPosts, 2000);
-
-</script>
-
+    <h1>Welcome to the Improved Design</h1>
+    <div class="card">
+        <h2>Card Title</h2>
+        <p>This is a card with an improved design.</p>
+        <button>Click Me!</button>
+    </div>
 </body>
 </html>
